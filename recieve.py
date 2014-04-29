@@ -3,7 +3,7 @@ import socket
 
 global win
 
-class Bar:
+class Bar: #it's one of those lame bars that only serve orange juice or something
     global win
     def __init__(self, loc, color, _min, _max):
         self.out = Rectangle(loc, Point(loc.getX()+51,loc.getY()+101))
@@ -23,7 +23,7 @@ class Bar:
         self.fill.setOutline(self.color)
         self.fill.setFill(self.color)
         self.fill.draw(win)
-class Button:
+class Button: #realy it's just a circle but don't tell him that - he's not emotionally stable
     global win
     def __init__(self, loc, color):
         self.c = Circle(loc, 10)
@@ -65,3 +65,8 @@ while 1:
         Y.Set(int(data[9]))
         LB.Set(int(data[10]))
         RB.Set(int(data[11]))
+
+#hahahahaha
+#sorry I was just thinking of an inside joke
+#no
+#fuck you
