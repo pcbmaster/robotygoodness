@@ -6,7 +6,7 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 data = []
 
 data.append({"cputemp": -1})
-
+iter = 0
 while 1:
     while 1:
         data[0]["cputemp"] = out = check_output(["/opt/vc/bin/vcgencmd", "measure_temp"])
@@ -17,3 +17,7 @@ while 1:
             send = send + str(elements)
         send = send + str(";")
         s.sendto(send, ("192.168.80.8", 7877))
+        iter = iter + 1
+        if (iter == 10):
+            print "Heartbeat"
+            iter = 0
