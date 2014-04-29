@@ -17,9 +17,6 @@ public class HillBotGui extends JFrame{
 	//private String ip = "";
 
 	private InfoGetter infoGetter;
-	
-	private int iters = 0;
-	private int validMessages = 0;
 
 	private JPanel mainPanel;
 
@@ -143,7 +140,6 @@ public class HillBotGui extends JFrame{
 
 		@Override
 		public void run() {
-			double time = 0;
 			while(keepLooping){
 				try {
 					values = infoGetter.getInfo();
