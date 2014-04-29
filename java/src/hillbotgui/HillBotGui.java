@@ -2,6 +2,7 @@ package hillbotgui;
 
 import java.awt.FlowLayout;
 import java.io.IOException;
+import java.io.StreamCorruptedException;
 import java.util.HashMap;
 
 import javax.swing.JFrame;
@@ -15,11 +16,10 @@ public class HillBotGui extends JFrame{
 	private String ip = "192.168.80.3";
 	//private String ip = "";
 
-	public static final int POLLING_INTERVAL_MS = 100;
-
-	private JLabel tempLabel;
-
 	private InfoGetter infoGetter;
+	
+	private int iters = 0;
+	private int validMessages = 0;
 
 	private JPanel mainPanel;
 
@@ -29,11 +29,13 @@ public class HillBotGui extends JFrame{
 	//private String values = "[cputemp,50]";
 
 	private HashMap<String, String> dictionary;
+	private HashMap<String, JLabel> panelDictionary;
 
 	public HillBotGui(){
 		setLayout(new FlowLayout());
 
 		dictionary = new HashMap<String, String>();
+		panelDictionary = new HashMap<String, JLabel>();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -42,7 +44,7 @@ public class HillBotGui extends JFrame{
 		pack();
 
 		infoGetter = new InfoGetter(ip, port);
-		
+
 		/*addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt){
             	System.out.println("Closing connection");
@@ -79,23 +81,26 @@ public class HillBotGui extends JFrame{
 	public void updateDictionary(){
 		String[] elements = null;
 		String[] keyvalarr = null;
-		boolean endsWithSemicolon = false;
 
 		if(values != null){
-			endsWithSemicolon = values.contains(";");
-			
 
-			if(endsWithSemicolon){
-				System.out.println("Got message!");
-				System.out.println(values);
-				
+			try {
 				elements = sanitizeAndSplit(values);
+			} catch (StreamCorruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 
-				for(String keyval : elements){
-					keyvalarr = keyval.split(":");
-					dictionary.put(keyvalarr[0], keyvalarr[1]);
+			for(String keyval : elements){
+				keyvalarr = keyval.split(":");
+				
+				if(keyvalarr[0].equals("cputemp")){
+					keyvalarr[1] = sanitizeTemp(keyvalarr[1]);
 				}
+				
+				
+				dictionary.put(keyvalarr[0], keyvalarr[1]);
 			}
 		}
 	}
@@ -105,16 +110,20 @@ public class HillBotGui extends JFrame{
 
 		mainPanel.setLayout(new FlowLayout());
 
-		tempLabel = new JLabel("Temp");
-
-		mainPanel.add(tempLabel);
-
 		getContentPane().add(mainPanel);
 	}
-	
-	public String[] sanitizeAndSplit(String values){
+
+	public String[] sanitizeAndSplit(String values) throws StreamCorruptedException{
+
+		int open = values.length() - values.replace("{", "").length();
+		int close = values.length() - values.replace("}", "").length();
+
+		if(!values.contains(";") || (open != close)){
+			throw new StreamCorruptedException();
+		}
+
 		values = values.split(";")[0];
-		
+
 		values = values.replace("{", "");
 		values = values.replace("'", "");
 		values = values.replace("\"", "");
@@ -122,34 +131,40 @@ public class HillBotGui extends JFrame{
 		values = values.replace(" ", "");
 		return values.split("}");
 	}
-	
-	private Double sanitizeTemp(String temp){
+
+	private String sanitizeTemp(String temp){
 		temp = temp.split("=")[1];
 		temp = temp.split("C")[0];
-		
-		return Double.valueOf(temp);
+
+		return temp;
 	}
 
 	class getStuffRunnable implements Runnable{
 
 		@Override
 		public void run() {
+			double time = 0;
 			while(keepLooping){
-				try {
-					Thread.sleep(POLLING_INTERVAL_MS);
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-
 				try {
 					values = infoGetter.getInfo();
 					updateDictionary();
-
-					if(dictionary.containsKey("cputemp")){
+					
+					for(String loopKey : dictionary.keySet()){
+						final String key = loopKey;
+						if(!panelDictionary.containsKey(key)){
+							panelDictionary.put(key, new JLabel());
+							
+							SwingUtilities.invokeLater(new Runnable(){
+								public void run(){
+									mainPanel.add(panelDictionary.get(key));
+								}
+							});
+						}
+						
 						SwingUtilities.invokeLater(new Runnable(){
 							public void run(){
-								tempLabel.setText(sanitizeTemp(dictionary.get("cputemp")).toString());
+								panelDictionary.get(key).setText(key + ": " + dictionary.get(key));
+								pack();
 							}
 						});
 					}
