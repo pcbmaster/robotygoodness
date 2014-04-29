@@ -20,4 +20,4 @@ while 1:
             elif len(str(data)) == 3:
                 send = send + str(data) + ","
         #print(len(send))
-        s.sendto(send, ("localhost", 7877))
+        s.sendto(send, ("localhost", 7877)) #because apparently 'tits' isn't a valid port
