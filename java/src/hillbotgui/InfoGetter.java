@@ -34,9 +34,20 @@ class InfoGetter {
 		System.out.println ("Setting host as " + IPAddress + 
 				" at UDP port " + port);
 	}
+	
+	public String fakeInfo(){
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "{ser:" + Math.random() + "," + Math.random() + "," + Math.random() + "," + Math.random() + "};";
+		//return "{ser:1,.5,.75,1,1,1,1,1,1};";
+	}
 
 	public String getInfo() throws IOException{
-		byte[] receiveData = new byte[1024];
+		/*byte[] receiveData = new byte[1024];
 
 		DatagramPacket receivePacket = 
 				new DatagramPacket(receiveData, receiveData.length);
@@ -55,7 +66,8 @@ class InfoGetter {
 			System.out.println ("Timeout Occurred: Packet assumed lost");
 		}
 
-		return info;
+		return info;*/
+		return fakeInfo();
 	}
 
 	public void close(){

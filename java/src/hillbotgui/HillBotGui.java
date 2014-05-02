@@ -21,7 +21,7 @@ public class HillBotGui extends JFrame{
 	private InfoGetter infoGetter;
 
 	private JPanel mainPanel;
-	
+
 	private JPanel rawDataPanel;
 
 	private GraphPanel graphsPanel;
@@ -41,7 +41,7 @@ public class HillBotGui extends JFrame{
 		panelDictionary = new HashMap<String, JLabel>();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
 		setMinimumSize(new Dimension(600,600));
 
 		initAndAddComponents();
@@ -114,15 +114,15 @@ public class HillBotGui extends JFrame{
 
 	private void initAndAddComponents(){
 		mainPanel = new JPanel();
-		
+
 		rawDataPanel = new JPanel();
-		
+
 		rawDataPanel.setLayout(new FlowLayout());
 
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
 		graphsPanel = new GraphPanel(200,200);
-		
+
 		mainPanel.add(rawDataPanel);
 
 		mainPanel.add(graphsPanel);
@@ -183,25 +183,27 @@ public class HillBotGui extends JFrame{
 
 						SwingUtilities.invokeLater(new Runnable(){
 							public void run(){
-								panelDictionary.get(key).setText(key + ": " + dictionary.get(key));
-								
+								if(!key.equals("ser")){
+									panelDictionary.get(key).setText(key + ": " + dictionary.get(key));
+								}
+
 								if(key.equals("ser")){
 									String[] vals = dictionary.get(key).split(",");
 									int i = 0;
-									
+
 									for(String val : vals){
 										try{
 											graphsPanel.getRect(i).calcScaledHeight(Double.valueOf(val));
 										}
 										catch (IndexOutOfBoundsException e){
-											graphsPanel.addRect(new ScaledRectangle(0, 50, 100));
+											graphsPanel.addRect(new ScaledRectangle(0, 1, graphsPanel.getHeight() / 2));
 											graphsPanel.getRect(i).calcScaledHeight(Double.valueOf(val));
 										}
-										
+
 										i++;
 									}
-									
-									
+
+
 									graphsPanel.revalidate();
 									graphsPanel.repaint();
 								}
