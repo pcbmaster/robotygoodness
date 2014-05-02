@@ -1,10 +1,12 @@
 package hillbotgui;
 
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 import java.util.HashMap;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -19,6 +21,10 @@ public class HillBotGui extends JFrame{
 	private InfoGetter infoGetter;
 
 	private JPanel mainPanel;
+	
+	private JPanel rawDataPanel;
+
+	private GraphPanel graphsPanel;
 
 	private boolean keepLooping = true;
 
@@ -35,10 +41,10 @@ public class HillBotGui extends JFrame{
 		panelDictionary = new HashMap<String, JLabel>();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		setMinimumSize(new Dimension(600,600));
 
 		initAndAddComponents();
-
-		pack();
 
 		infoGetter = new InfoGetter(ip, port);
 
@@ -91,12 +97,16 @@ public class HillBotGui extends JFrame{
 
 			for(String keyval : elements){
 				keyvalarr = keyval.split(":");
-				
+
 				if(keyvalarr[0].equals("cputemp")){
 					keyvalarr[1] = sanitizeTemp(keyvalarr[1]);
 				}
-				
-				
+
+				if(keyvalarr[0].equals("ser")){
+					keyvalarr[1] = sanitizeDistanceVals(keyvalarr[1]);
+				}
+
+
 				dictionary.put(keyvalarr[0], keyvalarr[1]);
 			}
 		}
@@ -104,8 +114,18 @@ public class HillBotGui extends JFrame{
 
 	private void initAndAddComponents(){
 		mainPanel = new JPanel();
+		
+		rawDataPanel = new JPanel();
+		
+		rawDataPanel.setLayout(new FlowLayout());
 
-		mainPanel.setLayout(new FlowLayout());
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
+		graphsPanel = new GraphPanel(200,200);
+		
+		mainPanel.add(rawDataPanel);
+
+		mainPanel.add(graphsPanel);
 
 		getContentPane().add(mainPanel);
 	}
@@ -136,6 +156,10 @@ public class HillBotGui extends JFrame{
 		return temp;
 	}
 
+	private String sanitizeDistanceVals(String vals){
+		return vals.replace("\\r", "");
+	}
+
 	class getStuffRunnable implements Runnable{
 
 		@Override
@@ -144,23 +168,43 @@ public class HillBotGui extends JFrame{
 				try {
 					values = infoGetter.getInfo();
 					updateDictionary();
-					
+
 					for(String loopKey : dictionary.keySet()){
 						final String key = loopKey;
 						if(!panelDictionary.containsKey(key)){
 							panelDictionary.put(key, new JLabel());
-							
+
 							SwingUtilities.invokeLater(new Runnable(){
 								public void run(){
-									mainPanel.add(panelDictionary.get(key));
+									rawDataPanel.add(panelDictionary.get(key));
 								}
 							});
 						}
-						
+
 						SwingUtilities.invokeLater(new Runnable(){
 							public void run(){
 								panelDictionary.get(key).setText(key + ": " + dictionary.get(key));
-								pack();
+								
+								if(key.equals("ser")){
+									String[] vals = dictionary.get(key).split(",");
+									int i = 0;
+									
+									for(String val : vals){
+										try{
+											graphsPanel.getRect(i).calcScaledHeight(Double.valueOf(val));
+										}
+										catch (IndexOutOfBoundsException e){
+											graphsPanel.addRect(new ScaledRectangle(0, 50, 100));
+											graphsPanel.getRect(i).calcScaledHeight(Double.valueOf(val));
+										}
+										
+										i++;
+									}
+									
+									
+									graphsPanel.revalidate();
+									graphsPanel.repaint();
+								}
 							}
 						});
 					}
