@@ -2,6 +2,4 @@ robotygoodness
 ==============
 
 Todo:
-*  there isn't enough cocaine
-*  um robots or something
-*  robuts
+* fix everything because it's broken
