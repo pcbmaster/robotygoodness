@@ -68,5 +68,3 @@ while 1:
 
 #hahahahaha
 #sorry I was just thinking of an inside joke
-#no
-#fuck you
